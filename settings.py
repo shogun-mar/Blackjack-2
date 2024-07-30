@@ -7,3 +7,4 @@ FLAGS = pygame.RESIZABLE
 
 DECK_NUM = 6 #Blackjack can be played with a collection of two to six decks of french cards
 DEALED_CARD_POSSIBLE_ROTATION = (-40, 40)
+DEALED_CARD_POSSIBLE_Y_OFFSET = 25

@@ -1,6 +1,6 @@
 import pygame
 from logic.states.gameState import GameState
-from settings import SCREEN_HEIGHT
+from settings import SCREEN_HEIGHT, DEALED_CARD_POSSIBLE_Y_OFFSET
 
 def handle_gameplay_events(game, event):
     if event.type == pygame.KEYDOWN:
@@ -15,18 +15,26 @@ def handle_gameplay_events(game, event):
             raise_card_in_hand(game, event.pos)               # nowhere near the player's hand
 
 def update_gameplay_logic(game):
-    #Animate thrown cards
-    for card in game.cards_on_table:
-        if card.rect.y < SCREEN_HEIGHT // 2:
-            card.rect.y += 5
-        if card.rect.center >= (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2):
-            game.cards_on_table.remove(card)
+    # Animate thrown cards
+    cards_to_be_removed = []
+    for card in game.animated_cards:
+        if not (card.rect.centery - DEALED_CARD_POSSIBLE_Y_OFFSET <= card.rect.centery <= card.rect.centery + DEALED_CARD_POSSIBLE_Y_OFFSET):
+            card.rect.y += 5  # Move the card down
+        else:
+            cards_to_be_removed.append(card)  # Remove the card from the animated cards list
+
+    if cards_to_be_removed: #If there are cards to be removed
+        for card in cards_to_be_removed:
+            game.cards_on_table.append(card)
+            game.animated_cards.remove(card)
 
 def render_gameplay(game):
     game.fake_screen.blit(game.background, (0, 0))
 
+    #Draw animated cards
+    [game.fake_screen.blit(card.sprite, card.rect) for card in game.animated_cards]
     #Draw cards on table
-    [game.fake_screen.blit(card.sprite, card.rect) for card in game.cards_on_table]
+    #[game.fake_screen.blit(card.sprite, card.rect) for card in game.cards_on_table]
     #Draw player hand
     [game.fake_screen.blit(card.sprite, card.rect) for card in game.player_hand]
 

@@ -11,6 +11,9 @@ class Card:
     def set_rect(self, rect):
         self.rect = rect
 
+    def flip(self):
+        self.visible =  not self.visible
+
     def draw(self, screen):
         if self.visible: screen.blit(self.sprite, self.rect)
         else: screen.blit(self.hidden_sprite, self.rect)

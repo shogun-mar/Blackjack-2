@@ -10,7 +10,6 @@ def handle_start_menu_events(game, event):
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_SPACE:
             game.deal_cards_to_player(2)
-            #game.bind_player_hand_rects()
             game.game_state = GameState.GAMEPLAY
     
 def update_start_menu_logic(game):

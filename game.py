@@ -23,6 +23,7 @@ class Game():
         self.game_state = GameState.START_MENU
         self.player_hand = []
         self.player_hand_rects = []
+        self.animated_cards = []
         self.cards_on_table = []
         self.card_objects = self.cards_objects_list("graphics/cards/normal_cards")
         self.deck = self.card_objects * DECK_NUM
@@ -96,14 +97,11 @@ class Game():
     def update_mouse_position(self, new_width, new_height):
         # Get the current mouse position
         current_mouse_x, current_mouse_y = pygame.mouse.get_pos()
-        
         # Get the current window size
         current_width, current_height = self.screen.get_size()
-        
         # Calculate the scaling factors
         scale_x = new_width / current_width
         scale_y = new_height / current_height
-        
         # Adjust the mouse position based on the scaling factors
         new_mouse_x = int(current_mouse_x * scale_x)
         new_mouse_y = int(current_mouse_y * scale_y)
@@ -119,13 +117,18 @@ class Game():
                 card_objects.append(Card(filename, pygame.image.load(image_path).convert_alpha(), True))
         return card_objects
     
-    def deal_card_to_player(self):
-        card = random.choice(self.deck)
-        card.sprite = pygame.transform.rotate(DEALED_CARD_POSSIBLE_ROTATION)
-        start_animation_rect = pygame.Rect(SCREEN_WIDTH // 2, -game.card_height // 2, self.card_width, self.card_height)
-        card.set_rect(start_animation_rect)
-        self.deck.remove(card)
-        self.cards_on_table.append(card)
+    def deal_cards_to_player(self, amount):
+        for _ in range(amount):
+            card = random.choice(self.deck)
+            self.deck.remove(card)
+            random_rotation = random.randrange(*DEALED_CARD_POSSIBLE_ROTATION)
+            card.sprite = pygame.transform.rotate(card.sprite, random_rotation)
+            card.flip() #Flip the cards on its back to hide it
+            start_animation_x = SCREEN_WIDTH // 2 - (game.card_width // 2)
+            start_animation_y = -game.card_height // 2
+            start_animation_rect = pygame.Rect(start_animation_x, start_animation_y, self.card_width, self.card_height)
+            card.set_rect(start_animation_rect)
+            self.animated_cards.append(card) #Add the card to the list of cards which are currently being animated
 
     def bind_player_hand_rects(self):
         self.player_hand_rects = self.create_player_hand_rects() #Create rects for each card in player_hand with the position based on the number of cards
