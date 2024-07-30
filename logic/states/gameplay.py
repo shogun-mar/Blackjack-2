@@ -1,12 +1,15 @@
 import pygame
 from logic.states.gameState import GameState
-from settings import SCREEN_HEIGHT, DEALED_CARD_POSSIBLE_Y_OFFSET
+from settings import SCREEN_HEIGHT, DEALED_CARD_POSSIBLE_Y_OFFSET, MAX_THROWN_CARD_VELOCITY
 
 def handle_gameplay_events(game, event):
     if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_SPACE and len(game.cards_on_table) != 0: #Player can only pick up cards if there are cards on the table
+        if event.key == pygame.K_e:# and len(game.cards_on_table) != 0: #Player can only pick up cards if there are cards on the table
+            elements_to_remove = []
             for card in game.cards_on_table:
                 game.player_hand.append(card)
+                elements_to_remove.append(card)
+            [elements_to_remove.remove(element) for element in elements_to_remove]
             
     elif event.type == pygame.MOUSEBUTTONDOWN:
         ...
@@ -18,25 +21,26 @@ def update_gameplay_logic(game):
     # Animate thrown cards
     cards_to_be_removed = []
     for card in game.animated_cards:
-        if not (card.rect.centery - DEALED_CARD_POSSIBLE_Y_OFFSET <= card.rect.centery <= card.rect.centery + DEALED_CARD_POSSIBLE_Y_OFFSET):
-            card.rect.y += 5  # Move the card down
-        else:
-            cards_to_be_removed.append(card)  # Remove the card from the animated cards list
-
-    if cards_to_be_removed: #If there are cards to be removed
-        for card in cards_to_be_removed:
+        velocity = calculate_velocity(card.rect.centery)
+        if SCREEN_HEIGHT - DEALED_CARD_POSSIBLE_Y_OFFSET <= card.rect.centery <= SCREEN_HEIGHT + DEALED_CARD_POSSIBLE_Y_OFFSET:
             game.cards_on_table.append(card)
-            game.animated_cards.remove(card)
+            cards_to_be_removed.append(card)  # Remove the card from the animated cards list
+            continue
+        else:
+            card.rect.centery += velocity  # Move the card down
+
+    for card in cards_to_be_removed:
+        game.animated_cards.remove(card)
 
 def render_gameplay(game):
     game.fake_screen.blit(game.background, (0, 0))
 
     #Draw animated cards
-    [game.fake_screen.blit(card.sprite, card.rect) for card in game.animated_cards]
+    [card.draw(game.fake_screen) for card in game.animated_cards]
     #Draw cards on table
-    #[game.fake_screen.blit(card.sprite, card.rect) for card in game.cards_on_table]
+    [card.draw(game.fake_screen) for card in game.cards_on_table]
     #Draw player hand
-    [game.fake_screen.blit(card.sprite, card.rect) for card in game.player_hand]
+    [card.draw(game.fake_screen) for card in game.player_hand]
 
 def raise_card_in_hand(game, pos):
     raised_card_max_height = 620
@@ -50,3 +54,11 @@ def raise_card_in_hand(game, pos):
                 card.rect.y = raised_card_max_height
         elif not is_mouse_colliding:
             card.rect.y = game.cards_in_hand_y_value #Reset the card y value
+
+def calculate_velocity(card_y):
+    center_y = SCREEN_HEIGHT // 2
+    distance_from_center = abs(card_y - center_y)
+    max_distance = center_y  # The maximum distance is from the center to the top or bottom of the screen
+    # Calculate velocity as a proportion of the maximum distance
+    velocity = (distance_from_center / max_distance) * MAX_THROWN_CARD_VELOCITY
+    return velocity

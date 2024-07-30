@@ -6,7 +6,7 @@ from logic.states.gameplay import handle_gameplay_events, update_gameplay_logic,
 from logic.states.powerupMenu import handle_powerup_menu_events, update_powerup_menu_logic, render_powerup_menu
 from logic.states.startMenu import handle_start_menu_events, update_start_menu_logic, render_start_menu
 from logic.states.pauseMenu import handle_pause_menu_events, update_pause_menu_logic, render_pause_menu
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, DECK_NUM, DEALED_CARD_POSSIBLE_ROTATION
+from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, DECK_NUM, DEALED_CARD_POSSIBLE_ROTATION, DEALED_CARD_POSSIBLE_X_OFFSET_RANGE
 
 class Game():
     def __init__(self):
@@ -38,7 +38,7 @@ class Game():
         self.play_message_rect = self.play_message.get_rect(center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 200))
 
         #Gameplay
-        self.card_width, self.card_height = self.card_objects[0].sprite.get_size() #Get the size of the card sprite
+        self.card_width, self.card_height = self.card_objects[0].front_sprite.get_size() #Get the size of the card sprite
         self.cards_in_hand_y_value = SCREEN_HEIGHT // 2 - self.card_height // 2 + 375
 
     def main(self):
@@ -121,12 +121,13 @@ class Game():
         for _ in range(amount):
             card = random.choice(self.deck)
             self.deck.remove(card)
-            random_rotation = random.randrange(*DEALED_CARD_POSSIBLE_ROTATION)
-            card.sprite = pygame.transform.rotate(card.sprite, random_rotation)
-            card.flip() #Flip the cards on its back to hide it
-            start_animation_x = SCREEN_WIDTH // 2 - (game.card_width // 2)
+            random_rotation_value = random.randrange(*DEALED_CARD_POSSIBLE_ROTATION)
+            card.rotate(random_rotation_value)
+            random_x_offset = random.randrange(*DEALED_CARD_POSSIBLE_X_OFFSET_RANGE)
+            start_animation_x = SCREEN_WIDTH // 2 - (game.card_width // 2) - (game.card_width // 2) + random_x_offset
             start_animation_y = -game.card_height // 2
             start_animation_rect = pygame.Rect(start_animation_x, start_animation_y, self.card_width, self.card_height)
+            card.flip() #Flip the cards on its back to hide it
             card.set_rect(start_animation_rect)
             self.animated_cards.append(card) #Add the card to the list of cards which are currently being animated
 
