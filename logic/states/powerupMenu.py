@@ -1,5 +1,5 @@
 import pygame
-from states.gameState import GameState
+from logic.states.gameState import GameState
 
 def handle_powerup_menu_events(event):
     ...

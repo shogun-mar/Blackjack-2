@@ -1,28 +1,29 @@
-import pygame, os
-from states.gameState import GameState
-from pygame.locals import QUIT, KEYDOWN, MOUSEBUTTONDOWN, VIDEORESIZE
-from states.gameplay import handle_gameplay_events, update_gameplay_logic, render_gameplay
-from states.powerupMenu import handle_powerup_menu_events, update_powerup_menu_logic, render_powerup_menu
-from states.startMenu import handle_start_menu_events, update_start_menu_logic, render_start_menu
-from states.pauseMenu import handle_pause_menu_events, update_pause_menu_logic, render_pause_menu
+import pygame, os, random
+from logic.states.gameState import GameState
+from logic.card import Card
+from pygame.locals import QUIT, KEYDOWN, MOUSEBUTTONDOWN, VIDEORESIZE, MOUSEMOTION
+from logic.states.gameplay import handle_gameplay_events, update_gameplay_logic, render_gameplay
+from logic.states.powerupMenu import handle_powerup_menu_events, update_powerup_menu_logic, render_powerup_menu
+from logic.states.startMenu import handle_start_menu_events, update_start_menu_logic, render_start_menu
+from logic.states.pauseMenu import handle_pause_menu_events, update_pause_menu_logic, render_pause_menu
 from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS
 
 class Game():
     def __init__(self):
         #Game inizialization
         pygame.init()
+        allowed_events = [QUIT, KEYDOWN, MOUSEBUTTONDOWN, VIDEORESIZE, MOUSEMOTION]
+        pygame.event.set_allowed(allowed_events)
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FLAGS)
         self.fake_screen = self.screen.copy()
         pygame.display.set_caption("Blackjack 2")
-        # Define allowed events
-        allowed_events = [QUIT, KEYDOWN, MOUSEBUTTONDOWN, VIDEORESIZE]
-        pygame.event.set_allowed(allowed_events)
         self.clock = pygame.time.Clock()
     
         #Game variables
         self.game_state = GameState.START_MENU
-        self.player_hand = {}
-        self.cards_dict = self.load_images_to_dictionary("graphics/cards/normal_cards")
+        self.player_hand = []
+        self.player_hand_rects = []
+        self.card_objects = self.cards_objects_list("graphics/cards/normal_cards")
 
         #Start menu
         self.background = pygame.image.load("graphics/background.jpg").convert_alpha()
@@ -81,17 +82,48 @@ class Game():
         elif self.game_state == GameState.PAUSE_MENU:
             render_pause_menu(self)
 
-    def load_images_to_dictionary(self, directory):
-        images = {}
-        for filename in os.listdir(directory):
-            if filename.endswith(".png") or filename.endswith(".jpg"):  # Add other extensions if needed
-                image_path = os.path.join(directory, filename)
-                images[filename] = pygame.image.load(image_path).convert_alpha()
-        return images
-
     def quit_game(self):
         pygame.quit()
         exit()
+
+    def cards_objects_list(self, directory):
+        card_objects = []
+        for filename in os.listdir(directory):
+            if filename.endswith(".png") or filename.endswith(".jpg"):  # Add other extensions if needed
+                image_path = os.path.join(directory, filename)
+                card_objects.append(Card(filename, pygame.image.load(image_path).convert_alpha(), True))
+        return card_objects
+    
+    def add_random_cards_to_player_hand(self):
+        #Sample return a list of 2 unique random elements from the card_objects list
+        sample = random.sample(self.card_objects, 2)
+        for card in sample:
+            self.player_hand.append(card)
+            print(self.player_hand)
+
+    def bind_player_hand_rects(self):
+        self.player_hand_rects = self.create_player_hand_rects() #Create rects for each card in player_hand with the position based on the number of cards
+        for i in range(len(self.player_hand)):
+            self.player_hand[i].set_rect(self.player_hand_rects[i])
+
+    def create_player_hand_rects(self):
+        rects = []
+        card_width, card_height = self.card_objects[0].sprite.get_size() #Get the size of the card sprite
+        num_cards = len(self.player_hand)
+        
+        if num_cards == 0: raise ValueError("No cards to create rects for") # No cards to create rects for
+
+        total_width = num_cards * card_width
+        start_x = (SCREEN_WIDTH - total_width) // 2
+
+        self.player_hand_rects.clear()  # Clear any existing rects
+
+        for i in range(num_cards):
+            x = start_x + i * card_width
+            rect = pygame.Rect(x, SCREEN_HEIGHT // 2 - card_height // 2 + 375, card_width, card_height)
+            rects.append(rect)
+
+        return rects
 
 if __name__ == "__main__":
     game = Game()
