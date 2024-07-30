@@ -6,7 +6,7 @@ from logic.states.gameplay import handle_gameplay_events, update_gameplay_logic,
 from logic.states.powerupMenu import handle_powerup_menu_events, update_powerup_menu_logic, render_powerup_menu
 from logic.states.startMenu import handle_start_menu_events, update_start_menu_logic, render_start_menu
 from logic.states.pauseMenu import handle_pause_menu_events, update_pause_menu_logic, render_pause_menu
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS
+from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, DECK_NUM
 
 class Game():
     def __init__(self):
@@ -24,6 +24,7 @@ class Game():
         self.player_hand = []
         self.player_hand_rects = []
         self.card_objects = self.cards_objects_list("graphics/cards/normal_cards")
+        self.deck = self.card_objects * DECK_NUM
 
         #Start menu
         self.background = pygame.image.load("graphics/background.jpg").convert_alpha()
@@ -34,6 +35,10 @@ class Game():
         self.play_message_original_size = self.play_message.get_size()
         self.play_message_rect = self.play_message.get_rect(center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 200))
 
+        #Gameplay
+        self.card_width, self.card_height = self.card_objects[0].sprite.get_size() #Get the size of the card sprite
+        self.cards_in_hand_y_value = SCREEN_HEIGHT // 2 - self.card_height // 2 + 375
+
     def main(self):
         while True:
             for event in pygame.event.get():
@@ -41,6 +46,7 @@ class Game():
                     self.quit_game()
                 elif event.type == pygame.VIDEORESIZE:
                     self.screen = pygame.display.set_mode((event.w, event.h), FLAGS)
+                    self.update_mouse_position(event.w, event.h)
                 else:
                     temp_game_state = self.handle_gamestate_specific_events(event) 
                     self.game_state = temp_game_state if temp_game_state is not None else self.game_state
@@ -86,10 +92,28 @@ class Game():
         pygame.quit()
         exit()
 
+    def update_mouse_position(self, new_width, new_height):
+        # Get the current mouse position
+        current_mouse_x, current_mouse_y = pygame.mouse.get_pos()
+        
+        # Get the current window size
+        current_width, current_height = self.screen.get_size()
+        
+        # Calculate the scaling factors
+        scale_x = new_width / current_width
+        scale_y = new_height / current_height
+        
+        # Adjust the mouse position based on the scaling factors
+        new_mouse_x = int(current_mouse_x * scale_x)
+        new_mouse_y = int(current_mouse_y * scale_y)
+        
+        # Set the new mouse position
+        pygame.mouse.set_pos((new_mouse_x, new_mouse_y))
+
     def cards_objects_list(self, directory):
         card_objects = []
         for filename in os.listdir(directory):
-            if filename.endswith(".png") or filename.endswith(".jpg"):  # Add other extensions if needed
+            if (filename.endswith(".png") or filename.endswith(".jpg")) and filename != "back.png":  # Add other extensions if needed
                 image_path = os.path.join(directory, filename)
                 card_objects.append(Card(filename, pygame.image.load(image_path).convert_alpha(), True))
         return card_objects
@@ -99,7 +123,6 @@ class Game():
         sample = random.sample(self.card_objects, 2)
         for card in sample:
             self.player_hand.append(card)
-            print(self.player_hand)
 
     def bind_player_hand_rects(self):
         self.player_hand_rects = self.create_player_hand_rects() #Create rects for each card in player_hand with the position based on the number of cards
@@ -108,19 +131,18 @@ class Game():
 
     def create_player_hand_rects(self):
         rects = []
-        card_width, card_height = self.card_objects[0].sprite.get_size() #Get the size of the card sprite
         num_cards = len(self.player_hand)
         
         if num_cards == 0: raise ValueError("No cards to create rects for") # No cards to create rects for
 
-        total_width = num_cards * card_width
+        total_width = num_cards * self.card_width
         start_x = (SCREEN_WIDTH - total_width) // 2
 
         self.player_hand_rects.clear()  # Clear any existing rects
 
         for i in range(num_cards):
-            x = start_x + i * card_width
-            rect = pygame.Rect(x, SCREEN_HEIGHT // 2 - card_height // 2 + 375, card_width, card_height)
+            x = start_x + i * self.card_width
+            rect = pygame.Rect(x, self.cards_in_hand_y_value, self.card_width, self.card_height)
             rects.append(rect)
 
         return rects
