@@ -6,7 +6,7 @@ from logic.states.gameplay import handle_gameplay_events, update_gameplay_logic,
 from logic.states.powerupMenu import handle_powerup_menu_events, update_powerup_menu_logic, render_powerup_menu
 from logic.states.startMenu import handle_start_menu_events, update_start_menu_logic, render_start_menu
 from logic.states.pauseMenu import handle_pause_menu_events, update_pause_menu_logic, render_pause_menu
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, DECK_NUM
+from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, DECK_NUM, DEALED_CARD_POSSIBLE_ROTATION
 
 class Game():
     def __init__(self):
@@ -23,6 +23,7 @@ class Game():
         self.game_state = GameState.START_MENU
         self.player_hand = []
         self.player_hand_rects = []
+        self.cards_on_table = []
         self.card_objects = self.cards_objects_list("graphics/cards/normal_cards")
         self.deck = self.card_objects * DECK_NUM
 
@@ -70,7 +71,7 @@ class Game():
 
     def update_logic(self):
         if self.game_state == GameState.GAMEPLAY:
-            update_gameplay_logic()
+            update_gameplay_logic(self)
         elif self.game_state == GameState.POWERUP_MENU:
             update_powerup_menu_logic()
         elif self.game_state == GameState.START_MENU:
@@ -118,18 +119,20 @@ class Game():
                 card_objects.append(Card(filename, pygame.image.load(image_path).convert_alpha(), True))
         return card_objects
     
-    def add_random_cards_to_player_hand(self):
-        #Sample return a list of 2 unique random elements from the card_objects list
-        sample = random.sample(self.card_objects, 2)
-        for card in sample:
-            self.player_hand.append(card)
+    def deal_card_to_player(self):
+        card = random.choice(self.deck)
+        card.sprite = pygame.transform.rotate(DEALED_CARD_POSSIBLE_ROTATION)
+        start_animation_rect = pygame.Rect(SCREEN_WIDTH // 2, -game.card_height // 2, self.card_width, self.card_height)
+        card.set_rect(start_animation_rect)
+        self.deck.remove(card)
+        self.cards_on_table.append(card)
 
     def bind_player_hand_rects(self):
         self.player_hand_rects = self.create_player_hand_rects() #Create rects for each card in player_hand with the position based on the number of cards
         for i in range(len(self.player_hand)):
             self.player_hand[i].set_rect(self.player_hand_rects[i])
 
-    def create_player_hand_rects(self):
+    def update_player_hand_rects(self):
         rects = []
         num_cards = len(self.player_hand)
         

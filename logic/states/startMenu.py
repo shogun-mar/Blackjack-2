@@ -9,8 +9,8 @@ play_message_resize_amount = 0.01
 def handle_start_menu_events(game, event):
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_SPACE:
-            game.add_random_cards_to_player_hand()
-            game.bind_player_hand_rects()
+            game.deal_cards_to_player(2)
+            #game.bind_player_hand_rects()
             game.game_state = GameState.GAMEPLAY
     
 def update_start_menu_logic(game):
@@ -31,4 +31,8 @@ def update_start_menu_logic(game):
 def render_start_menu(game):
     game.fake_screen.blit(game.background, (0, 0))
     game.fake_screen.blit(game.play_message, game.play_message_rect)
+
+def lerp(start, end, t): #Linear interpolation function
+    return start + t * (end - start)
+
 
