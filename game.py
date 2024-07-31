@@ -38,8 +38,7 @@ class Game():
 
         #Gameplay
         self.card_width, self.card_height = self.card_objects[0].front_sprite.get_size() #Get the size of the card sprite
-        self.cards_in_hand_y_value = SCREEN_HEIGHT // 2 - self.card_height // 2 + 300
-        print(f"cards in hand y value {self.cards_in_hand_y_value}")
+        self.cards_in_hand_y_value = SCREEN_HEIGHT - self.card_height // 2
 
     def main(self):
         while True:
@@ -122,8 +121,7 @@ class Game():
         for _ in range(amount):
             card = random.choice(self.deck)
             self.deck.remove(card)
-            card.rotation_value = random.randrange(*DEALED_CARD_POSSIBLE_ROTATION)
-            card.rotate() #Rotate the card
+            card.rotate(random.randrange(*DEALED_CARD_POSSIBLE_ROTATION)) #Rotate the card
             random_x_offset = random.randrange(*DEALED_CARD_POSSIBLE_X_OFFSET_RANGE)
             start_animation_x = SCREEN_WIDTH // 2 - (self.card_width // 2) + random_x_offset
             start_animation_y = -self.card_height // 2

@@ -51,7 +51,7 @@ def render_gameplay(game):
         card.draw(game.fake_screen)
 
 def raise_card_in_hand(game, pos):
-    raised_card_max_height = 620
+    raised_card_max_height = 580
     raising_amount = 10
     for card in game.player_hand:
         is_mouse_colliding = card.rect.collidepoint(pos)
