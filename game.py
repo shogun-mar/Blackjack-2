@@ -1,4 +1,4 @@
-import pygame, os
+import pygame, random, os
 from logic.states.gameState import GameState
 from logic.card import Card
 from pygame.locals import QUIT, KEYDOWN, MOUSEBUTTONDOWN, VIDEORESIZE, MOUSEMOTION
@@ -7,7 +7,6 @@ from logic.states.powerupMenu import handle_powerup_menu_events, update_powerup_
 from logic.states.startMenu import handle_start_menu_events, update_start_menu_logic, render_start_menu
 from logic.states.pauseMenu import handle_pause_menu_events, update_pause_menu_logic, render_pause_menu
 from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, DECK_NUM, DEALED_CARD_POSSIBLE_ROTATION, DEALED_CARD_POSSIBLE_X_OFFSET_RANGE
-from random import randrange, randint
 
 class Game():
     def __init__(self):
@@ -25,17 +24,34 @@ class Game():
         self.player_hand = []
         self.animated_cards = []
         self.cards_on_table = []
-        self.card_objects = self.cards_objects_list(f"graphics/cards/normal_cards/option{randint(1,2)}")
+        self.card_objects = self.cards_objects_list(f"graphics/cards/normal_cards/option{random.randint(1,2)}")
         self.deck = self.card_objects * DECK_NUM
 
-        #Start menu
+        # Start menu
+            # Background
         self.background = pygame.image.load("graphics/background.jpg").convert_alpha()
 
+            # Play message
         font = pygame.font.Font("graphics/m5x7.ttf", 36)
-        self.play_message = pygame.transform.rotate(font.render("Press SPACE to play!", True, (255, 255, 255)), randrange(-45, 45))
+        rand_rotation_value = random.randrange(-30, 30)
+        self.play_message = pygame.transform.rotate(font.render("Press SPACE to play!", True, 'white'), rand_rotation_value)
         self.play_message_original = self.play_message.copy()
         self.play_message_original_size = self.play_message.get_size()
-        self.play_message_rect = self.play_message.get_rect(center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 200))
+        self.play_message_rect = self.play_message.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150))
+            # Outline
+        outline_size_multiplier = 1.1  # Multiplier that controls how big is the outline in proportion to the message
+        play_message_width, play_message_height = self.play_message.get_size()
+        self.play_message_outline_original_size = (int(play_message_width * outline_size_multiplier), int(play_message_height * outline_size_multiplier))
+            # Create a black surface slightly larger than play_message
+        temp_surf = pygame.transform.rotate(font.render("Press SPACE to play!", True, 'black'), rand_rotation_value)
+        temp_surf_size = temp_surf.get_size()
+        self.play_message_outline =  pygame.transform.scale(temp_surf, (temp_surf_size[0] * outline_size_multiplier, temp_surf_size[1] * outline_size_multiplier))
+            # Blit the play_message onto the black surface to create an outline effect
+        outline_rect = self.play_message_outline.get_rect()
+        outline_rect.center = (self.play_message_outline_original_size[0] // 2, self.play_message_outline_original_size[1] // 2)
+        self.play_message_outline.blit(self.play_message, (outline_rect.width // 2 - play_message_width // 2, outline_rect.height // 2 - play_message_height // 2))
+        self.play_message_outline_original = self.play_message_outline.copy()
+        self.play_message_outline_rect = self.play_message_outline.get_rect(center=self.play_message_rect.center)
 
         #Gameplay
         self.card_width, self.card_height = self.card_objects[0].front_sprite.get_size() #Get the size of the card sprite
