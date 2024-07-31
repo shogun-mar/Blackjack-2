@@ -1,4 +1,4 @@
-import pygame, os, random
+import pygame, os
 from logic.states.gameState import GameState
 from logic.card import Card
 from pygame.locals import QUIT, KEYDOWN, MOUSEBUTTONDOWN, VIDEORESIZE, MOUSEMOTION
@@ -7,6 +7,7 @@ from logic.states.powerupMenu import handle_powerup_menu_events, update_powerup_
 from logic.states.startMenu import handle_start_menu_events, update_start_menu_logic, render_start_menu
 from logic.states.pauseMenu import handle_pause_menu_events, update_pause_menu_logic, render_pause_menu
 from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, DECK_NUM, DEALED_CARD_POSSIBLE_ROTATION, DEALED_CARD_POSSIBLE_X_OFFSET_RANGE
+from random import randrange, randint
 
 class Game():
     def __init__(self):
@@ -24,21 +25,21 @@ class Game():
         self.player_hand = []
         self.animated_cards = []
         self.cards_on_table = []
-        self.card_objects = self.cards_objects_list("graphics/cards/normal_cards")
+        self.card_objects = self.cards_objects_list(f"graphics/cards/normal_cards/option{randint(1,2)}")
         self.deck = self.card_objects * DECK_NUM
 
         #Start menu
         self.background = pygame.image.load("graphics/background.jpg").convert_alpha()
 
         font = pygame.font.Font("graphics/m5x7.ttf", 36)
-        self.play_message = font.render("Press SPACE to play!", True, (255, 255, 255))
+        self.play_message = pygame.transform.rotate(font.render("Press SPACE to play!", True, (255, 255, 255)), randrange(-45, 45))
         self.play_message_original = self.play_message.copy()
         self.play_message_original_size = self.play_message.get_size()
         self.play_message_rect = self.play_message.get_rect(center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 200))
 
         #Gameplay
         self.card_width, self.card_height = self.card_objects[0].front_sprite.get_size() #Get the size of the card sprite
-        self.cards_in_hand_y_value = SCREEN_HEIGHT - self.card_height // 2
+        self.cards_in_hand_y_value = SCREEN_HEIGHT - int(self.card_height * 0.6)
 
     def main(self):
         while True:
@@ -111,7 +112,7 @@ class Game():
     def cards_objects_list(self, directory):
         card_objects = []
         for filename in os.listdir(directory):
-            if (filename.endswith(".png") or filename.endswith(".jpg")) and filename != "back.png":  # Add other extensions if needed
+            if (filename.endswith(".png") or filename.endswith(".jpg")):
                 image_path = os.path.join(directory, filename)
                 loaded_image = pygame.image.load(image_path).convert_alpha()
                 card_objects.append(Card(filename, loaded_image, True))
@@ -141,7 +142,7 @@ class Game():
 
         # Update the rects of the card objects
         for i in range(num_cards):
-            x = start_x + i * self.card_width
+            x = start_x + ((i * self.card_width) - self.card_width // 2) 
             rect = pygame.Rect(x, self.cards_in_hand_y_value, self.card_width, self.card_height)
             self.player_hand[i].set_rect(rect)
 

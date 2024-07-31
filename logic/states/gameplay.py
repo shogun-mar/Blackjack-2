@@ -45,10 +45,8 @@ def render_gameplay(game):
     #Draw cards on table
     [card.draw(game.fake_screen) for card in game.cards_on_table]
     #Draw player hand
-    #[card.draw(game.fake_screen) for card in game.player_hand]
-    for card in game.player_hand:
-        #card.front_sprite.fill((255, 255, 255))
-        card.draw(game.fake_screen)
+    for i in range(len(game.player_hand)-1, -1, -1): #Reverse for loop so that the first drawn card is drawn last
+        game.player_hand[i].draw(game.fake_screen)
 
 def raise_card_in_hand(game, pos):
     raised_card_max_height = 580

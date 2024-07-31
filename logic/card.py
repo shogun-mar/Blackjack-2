@@ -1,4 +1,5 @@
 import pygame
+from random import randint
 
 class Card:
     def __init__(self, name, sprite, visible):
@@ -8,7 +9,7 @@ class Card:
         self.rotated = False
         self.last_rotation_value = None
         self.front_sprite = sprite
-        self.back_sprite = pygame.image.load("graphics/cards/normal_cards/back.png").convert_alpha()
+        self.back_sprite = pygame.image.load(f"graphics/cards/normal_cards/back{randint(1,2)}.png").convert_alpha()
         self.rotated_front_sprite = self.front_sprite.copy()
         self.rotated_back_sprite = self.back_sprite.copy()
         self.sprite_width, self.sprite_height = self.front_sprite.get_size()
