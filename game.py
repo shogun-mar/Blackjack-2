@@ -6,7 +6,8 @@ from logic.states.gameplay import handle_gameplay_events, update_gameplay_logic,
 from logic.states.powerupMenu import handle_powerup_menu_events, update_powerup_menu_logic, render_powerup_menu
 from logic.states.startMenu import handle_start_menu_events, update_start_menu_logic, render_start_menu
 from logic.states.pauseMenu import handle_pause_menu_events, update_pause_menu_logic, render_pause_menu
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, DECK_NUM, DEALED_CARD_POSSIBLE_ROTATION, DEALED_CARD_POSSIBLE_X_OFFSET_RANGE, DEALED_CARD_POSSIBLE_Y_OFFSET
+from logic.states.bettingMenu import handle_betting_menu_events, update_betting_menu_logic, render_betting_menu
+from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, MENU_BACKGROUNDS_ALPHA_VALUE, DECK_NUM, DEALED_CARD_POSSIBLE_ROTATION, DEALED_CARD_POSSIBLE_X_OFFSET_RANGE, DEALED_CARD_POSSIBLE_Y_OFFSET
 
 class Game():
     def __init__(self):
@@ -20,7 +21,9 @@ class Game():
         self.clock = pygame.time.Clock()
     
         #Game variables
+        self.font = pygame.font.Font("graphics/m5x7.ttf", 36)
         self.game_state = GameState.START_MENU
+        self.player_money = 500
         self.player_hand = [] #Player cards
         self.thrown_cards = [] #Thrown cards
         self.dealer_cards = [] #Dealer cards
@@ -44,6 +47,26 @@ class Game():
         self.cards_in_hand_y_value = SCREEN_HEIGHT - int(self.card_height * 0.6)
         self.thrown_card_min_height = (SCREEN_HEIGHT // 2) - DEALED_CARD_POSSIBLE_Y_OFFSET
         self.thrown_card_max_height = (SCREEN_HEIGHT // 2) + DEALED_CARD_POSSIBLE_Y_OFFSET
+
+        #Betting menu
+        panel_surf_size = (800, 300)
+        self.betting_menu_background = self.gameplay_background.copy() #Darkened background
+        darken_surf = pygame.Surface(self.betting_menu_background.get_size(), pygame.SRCALPHA) # SRCALPHA flag do have per pixel transparency
+        darken_surf.fill((0, 0, 0, MENU_BACKGROUNDS_ALPHA_VALUE)) #Fill it with half transparent black
+        self.betting_menu_background.blit(darken_surf, (0, 0)) #Blit the half dark surf on the background
+        betting_menu_black_panel = pygame.Surface(panel_surf_size)
+        betting_menu_black_panel_rect = betting_menu_black_panel.get_rect(center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        betting_menu_white_panel = pygame.Surface(panel_surf_size)
+        betting_menu_white_panel.fill((255, 255, 255))
+        betting_menu_white_panel_rect = betting_menu_white_panel.get_rect(center = (SCREEN_WIDTH // 2 - 20, SCREEN_HEIGHT // 2 - 20))
+        self.player_money_text = self.font.render(f"Your current balance: {self.player_money} $", (0, 0, 0), True) 
+        self.player_money_text_rect = self.player_money_text.get_rect(center = (SCREEN_WIDTH // 2, betting_menu_white_panel_rect.center[1] - 75))
+        self.betting_menu_static__ui = [betting_menu_black_panel, betting_menu_white_panel, self.player_money_text]
+        self.betting_menu_static_ui_rects = [betting_menu_black_panel_rect, betting_menu_white_panel_rect, self.player_money_text_rect]
+
+        self.betting_options_font = pygame.font.Font("5", 36)
+        five_option = self.betting_options_font.render(, 'black')
+        self.betting_options_surf = []
 
     def main(self):
         while True:
@@ -73,6 +96,8 @@ class Game():
             handle_start_menu_events(self, event)
         elif self.game_state == GameState.PAUSE_MENU:
             handle_pause_menu_events(self, event)
+        elif self.game_state == GameState.BETTING_MENU:
+            handle_betting_menu_events(self, event)
 
     def update_logic(self):
         if self.game_state == GameState.GAMEPLAY:
@@ -83,6 +108,8 @@ class Game():
             update_start_menu_logic(self)
         elif self.game_state == GameState.PAUSE_MENU:
             update_pause_menu_logic()
+        elif self.game_state == GameState.BETTING_MENU:
+            update_betting_menu_logic()
 
     def render(self):
         if self.game_state == GameState.GAMEPLAY:
@@ -93,6 +120,8 @@ class Game():
             render_start_menu(self)
         elif self.game_state == GameState.PAUSE_MENU:
             render_pause_menu(self)
+        elif self.game_state == GameState.BETTING_MENU:
+            render_betting_menu(self)
 
     def quit_game(self):
         pygame.quit()
@@ -119,7 +148,7 @@ class Game():
             if (filename.endswith(".png") or filename.endswith(".jpg")):
                 image_path = os.path.join(directory, filename)
                 loaded_image = pygame.image.load(image_path).convert_alpha()
-                card_objects.append(Card(filename, loaded_image, True))
+                card_objects.append(Card(int(filename[:2]), loaded_image, True))
         return card_objects
     
     def deal_cards_to_player(self, amount):

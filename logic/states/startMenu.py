@@ -8,9 +8,7 @@ play_message_resize_amount = 0.01
 
 def handle_start_menu_events(game, event):
     if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_SPACE:
-            game.deal_cards_to_player(2)
-            game.game_state = GameState.GAMEPLAY
+        if event.key == pygame.K_SPACE: game.game_state = GameState.BETTING_MENU
     
 def update_start_menu_logic(game):
     global play_message_resize_factor, play_message_resize_amount
@@ -26,8 +24,7 @@ def update_start_menu_logic(game):
     # game.play_message_outline_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150)
 
 def render_start_menu(game):
-    pass
-    #game.fake_screen.blit(game.background, (0, 0))
+    game.fake_screen.blit(game.gameplay_background, (0, 0))
     #game.fake_screen.blit(game.start_menu_deck, game.start_menu_deck_rect)
     #game.fake_screen.blit(game.play_message_outline, game.play_message_outline_rect)
 

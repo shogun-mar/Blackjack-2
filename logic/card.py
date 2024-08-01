@@ -2,8 +2,8 @@ import pygame
 from random import randint
 
 class Card:
-    def __init__(self, name, sprite, visible):
-        self.name = name
+    def __init__(self, value, sprite, visible):
+        self.value = value
         self.rect = None
         self.visible = visible
         self.rotated = False
