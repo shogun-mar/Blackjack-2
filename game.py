@@ -24,19 +24,22 @@ class Game():
         self.player_hand = []
         self.animated_cards = []
         self.cards_on_table = []
-        self.card_objects = self.cards_objects_list(f"graphics/cards/normal_cards/option{random.randint(1,2)}")
+        self.card_objects = self.cards_objects_list("graphics/cards/normal_cards/option2")
+        #self.card_objects = self.cards_objects_list(f"graphics/cards/normal_cards/option{random.randint(1,2)}")
         self.deck = self.card_objects * DECK_NUM
 
         # Start menu
             # Background
-        self.background = pygame.image.load("graphics/background.jpg").convert_alpha()
+        
 
             #Play message
         rand_rotation_value = random.randrange(-20, 20)
         self.start_menu_deck = pygame.image.load("graphics/cards/red_deck_right.png").convert_alpha()
-        self.start_menu_deck_rect = self.start_menu_deck.get_rect(midleft = (5, SCREEN_HEIGHT // 2))
+        start_menu_rect_topleft = (random.randrange(10, 100), random.randrange(10, 100)) 
+        self.start_menu_deck_rect = self.start_menu_deck.get_rect(topleft = start_menu_rect_topleft)
 
         #Gameplay
+        self.gameplay_background = pygame.image.load("graphics/background.jpg").convert_alpha()
         self.card_width, self.card_height = self.card_objects[0].front_sprite.get_size() #Get the size of the card sprite
         self.cards_in_hand_y_value = SCREEN_HEIGHT - int(self.card_height * 0.6)
 
@@ -130,6 +133,14 @@ class Game():
             card.set_rect(start_animation_rect)
             self.animated_cards.append(card)  # Add the card to the list of cards which are currently being animated
     
+    def place_dealer_cards(self, amount):
+        for i in range(amount):
+            card = random.choice(self.deck)
+            self.animated_cards.append(card)
+            if len(self.animated_cards) == 1:
+            self.deck.remove(card)
+            start_animation_x = SCREEN_WIDTH // 2 - (self.card_width // 2)
+
     def update_player_hand_rects(self):
         num_cards = len(self.player_hand)
         
@@ -141,7 +152,7 @@ class Game():
 
         # Update the rects of the card objects
         for i in range(num_cards):
-            x = start_x + ((i * self.card_width) - self.card_width // 2) 
+            x = start_x + i * self.card_width + i * 5  
             rect = pygame.Rect(x, self.cards_in_hand_y_value, self.card_width, self.card_height)
             self.player_hand[i].set_rect(rect)
 

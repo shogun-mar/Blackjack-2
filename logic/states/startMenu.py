@@ -26,8 +26,9 @@ def update_start_menu_logic(game):
     # game.play_message_outline_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150)
 
 def render_start_menu(game):
-    game.fake_screen.blit(game.background, (0, 0))
-    game.fake_screen.blit(game.start_menu_deck, game.start_menu_deck_rect)
+    pass
+    #game.fake_screen.blit(game.background, (0, 0))
+    #game.fake_screen.blit(game.start_menu_deck, game.start_menu_deck_rect)
     #game.fake_screen.blit(game.play_message_outline, game.play_message_outline_rect)
 
 def resize_surface(surface, original_size, resize_factor):

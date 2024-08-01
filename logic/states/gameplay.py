@@ -15,11 +15,13 @@ def handle_gameplay_events(game, event):
             [game.cards_on_table.remove(element) for element in elements_to_remove]
             game.update_player_hand_rects()  # Update the rects for the player's hand
 
+            game.place_dealer_cards(2) #Place the two initial cards of the dealer
+
     elif event.type == pygame.MOUSEBUTTONDOWN:
         ...
     elif event.type == pygame.MOUSEMOTION:
-        if event.pos[1] > SCREEN_HEIGHT - 200 and len(game.player_hand) != 0: #Non necessary if statement to avoid unnecessary calculations if the mouse if
-            raise_card_in_hand(game, event.pos)               # nowhere near the player's hand
+        if len(game.player_hand) != 0: 
+            raise_card_in_hand(game, event.pos)
 
 def update_gameplay_logic(game):
     # Animate thrown cards
@@ -38,7 +40,7 @@ def update_gameplay_logic(game):
         game.animated_cards.remove(card)  # Remove the card from the animated cards list
 
 def render_gameplay(game):
-    game.fake_screen.blit(game.background, (0, 0))
+    game.fake_screen.blit(game.gameplay_background, (0, 0))
 
     #Draw animated cards
     [card.draw(game.fake_screen) for card in game.animated_cards]
