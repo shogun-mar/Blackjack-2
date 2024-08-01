@@ -6,7 +6,7 @@ from logic.states.gameplay import handle_gameplay_events, update_gameplay_logic,
 from logic.states.powerupMenu import handle_powerup_menu_events, update_powerup_menu_logic, render_powerup_menu
 from logic.states.startMenu import handle_start_menu_events, update_start_menu_logic, render_start_menu
 from logic.states.pauseMenu import handle_pause_menu_events, update_pause_menu_logic, render_pause_menu
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, DECK_NUM, DEALED_CARD_POSSIBLE_ROTATION, DEALED_CARD_POSSIBLE_X_OFFSET_RANGE
+from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, DECK_NUM, DEALED_CARD_POSSIBLE_ROTATION, DEALED_CARD_POSSIBLE_X_OFFSET_RANGE, DEALED_CARD_POSSIBLE_Y_OFFSET
 
 class Game():
     def __init__(self):
@@ -21,9 +21,9 @@ class Game():
     
         #Game variables
         self.game_state = GameState.START_MENU
-        self.player_hand = []
-        self.animated_cards = []
-        self.cards_on_table = []
+        self.player_hand = [] #Player cards
+        self.thrown_cards = [] #Thrown cards
+        self.dealer_cards = [] #Dealer cards
         self.card_objects = self.cards_objects_list("graphics/cards/normal_cards/option2")
         #self.card_objects = self.cards_objects_list(f"graphics/cards/normal_cards/option{random.randint(1,2)}")
         self.deck = self.card_objects * DECK_NUM
@@ -42,6 +42,8 @@ class Game():
         self.gameplay_background = pygame.image.load("graphics/background.jpg").convert_alpha()
         self.card_width, self.card_height = self.card_objects[0].front_sprite.get_size() #Get the size of the card sprite
         self.cards_in_hand_y_value = SCREEN_HEIGHT - int(self.card_height * 0.6)
+        self.thrown_card_min_height = (SCREEN_HEIGHT // 2) - DEALED_CARD_POSSIBLE_Y_OFFSET
+        self.thrown_card_max_height = (SCREEN_HEIGHT // 2) + DEALED_CARD_POSSIBLE_Y_OFFSET
 
     def main(self):
         while True:
@@ -123,6 +125,7 @@ class Game():
     def deal_cards_to_player(self, amount):
         for _ in range(amount):
             card = random.choice(self.deck)
+            card.set_owner('player')
             self.deck.remove(card)
             card.rotate(random.randrange(*DEALED_CARD_POSSIBLE_ROTATION)) #Rotate the card
             random_x_offset = random.randrange(*DEALED_CARD_POSSIBLE_X_OFFSET_RANGE)
@@ -131,15 +134,21 @@ class Game():
             start_animation_rect = pygame.Rect(start_animation_x, start_animation_y, self.card_width, self.card_height)
             card.flip()  # Flip the cards on its back to hide it
             card.set_rect(start_animation_rect)
-            self.animated_cards.append(card)  # Add the card to the list of cards which are currently being animated
+            self.thrown_cards.append(card)  # Add the card to the list of cards which are currently being animated
     
     def place_dealer_cards(self, amount):
         for i in range(amount):
             card = random.choice(self.deck)
-            self.animated_cards.append(card)
-            if len(self.animated_cards) == 1:
+            card.set_owner('dealer')
             self.deck.remove(card)
-            start_animation_x = SCREEN_WIDTH // 2 - (self.card_width // 2)
+            self.thrown_cards.append(card)
+            if len(self.thrown_cards) == 1: card.flip()
+            if i % 2 == 0:
+                start_animation_x = SCREEN_WIDTH // 2 - self.card_width - 10
+            else: start_animation_x = SCREEN_WIDTH // 2 + 10
+            start_animation_y = -self.card_height // 2
+            start_animation_rect = pygame.Rect(start_animation_x, start_animation_y, self.card_width, self.card_height)
+            card.set_rect(start_animation_rect)
 
     def update_player_hand_rects(self):
         num_cards = len(self.player_hand)

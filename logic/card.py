@@ -7,6 +7,7 @@ class Card:
         self.rect = None
         self.visible = visible
         self.rotated = False
+        self.owner = None
         self.last_rotation_value = None
         self.front_sprite = sprite
         self.back_sprite = pygame.image.load(f"graphics/cards/normal_cards/back{randint(1,2)}.png").convert_alpha()
@@ -16,6 +17,9 @@ class Card:
 
     def set_rect(self, rect):
         self.rect = rect
+
+    def set_owner(self, owner):
+        self.owner = owner
 
     def flip(self):
         self.visible = not self.visible

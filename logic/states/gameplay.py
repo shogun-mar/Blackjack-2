@@ -1,21 +1,24 @@
 import pygame
 from logic.states.gameState import GameState
-from settings import SCREEN_HEIGHT, DEALED_CARD_POSSIBLE_Y_OFFSET, MAX_THROWN_CARD_VELOCITY
+from settings import SCREEN_HEIGHT, MAX_THROWN_CARD_VELOCITY
 
 def handle_gameplay_events(game, event):
     if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_e and len(game.cards_on_table) != 0: #Player can only pick up cards if there are cards on the table
-            elements_to_remove = []
-            for card in game.cards_on_table:
-                card.flip() #Flip the card so that it is visible in the player's hand
-                card.reset_rotation() #Reset the card's rotation to its original rotation
-                card.reset_surf_size() #Reset the card's size to its original size (rotating the card can modify the size of the card)
-                game.player_hand.append(card)
-                elements_to_remove.append(card)
-            [game.cards_on_table.remove(element) for element in elements_to_remove]
-            game.update_player_hand_rects()  # Update the rects for the player's hand
+        if event.key == pygame.K_e and len(game.dealer_cards) == 0:
+            cards_to_remove = []
+            card_added = False #Boolean to keep track if card is added or not (and to stop the code from updating the player hand rects if no card is added)
+            for card in game.thrown_cards:
+                if card.owner == 'player':
+                    card_added = True
+                    card.flip() #Flip the card so that it is visible in the player's hand
+                    card.reset_rotation() #Reset the card's rotation to its original rotation
+                    card.reset_surf_size() #Reset the card's size to its original size (rotating the card can modify the size of the card)
+                    game.player_hand.append(card)
+                    cards_to_remove.append(card)
+            [game.thrown_cards.remove(element) for element in cards_to_remove]
+            if card_added: game.update_player_hand_rects()  # Update the rects for the player's hand
 
-            game.place_dealer_cards(2) #Place the two initial cards of the dealer
+            if len(game.dealer_cards) == 0: game.place_dealer_cards(2) #Place the two initial cards of the dealer
 
     elif event.type == pygame.MOUSEBUTTONDOWN:
         ...
@@ -25,30 +28,27 @@ def handle_gameplay_events(game, event):
 
 def update_gameplay_logic(game):
     # Animate thrown cards
-    cards_to_be_removed = []
-    min_height = (SCREEN_HEIGHT // 2) - DEALED_CARD_POSSIBLE_Y_OFFSET
-    max_height = (SCREEN_HEIGHT // 2) + DEALED_CARD_POSSIBLE_Y_OFFSET
-    for card in game.animated_cards:
+    min_height = game.thrown_card_min_height
+    max_height = game.thrown_card_max_height
+    for card in game.thrown_cards:
         velocity = calculate_velocity(card.rect.centery)
-        if min_height <= card.rect.centery <= max_height:
-            game.cards_on_table.append(card)
-            cards_to_be_removed.append(card)  # Mark the card for removal from the animated cards list
-        else:
+        if not min_height <= card.rect.centery <= max_height:
             card.rect.centery += velocity  # Move the card down
+        elif card.owner == 'dealer':
+            game.dealer_cards.append(card)
+            game.thrown_cards.remove(card)
 
-    for card in cards_to_be_removed:
-        game.animated_cards.remove(card)  # Remove the card from the animated cards list
 
+    
 def render_gameplay(game):
     game.fake_screen.blit(game.gameplay_background, (0, 0))
 
-    #Draw animated cards
-    [card.draw(game.fake_screen) for card in game.animated_cards]
-    #Draw cards on table
-    [card.draw(game.fake_screen) for card in game.cards_on_table]
+    #Draw thrown cards
+    [card.draw(game.fake_screen) for card in game.thrown_cards]
     #Draw player hand
-    for i in range(len(game.player_hand)-1, -1, -1): #Reverse for loop so that the first drawn card is drawn last
-        game.player_hand[i].draw(game.fake_screen)
+    [card.draw(game.fake_screen) for card in game.player_hand]
+    #Draw dealer cards
+    [card.draw(game.fake_screen) for card in game.dealer_cards]
 
 def raise_card_in_hand(game, pos):
     raised_card_max_height = game.cards_in_hand_y_value - (game.card_height * 0.3)
