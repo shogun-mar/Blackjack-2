@@ -23,6 +23,8 @@ class Game():
         #Game variables
         self.game_state = GameState.START_MENU
         self.player_money = 500
+        self.player_health = 5
+        self.dealer_health = 5
         self.player_hand = [] #Player cards
         self.thrown_cards = [] #Thrown cards
         self.dealer_cards = [] #Dealer cards
@@ -147,7 +149,7 @@ class Game():
             card.set_rect(start_animation_rect)
             self.thrown_cards.append(card)  # Add the card to the list of cards which are currently being animated
     
-    def place_dealer_cards(self, amount):
+    def add_cards_to_dealer(self, amount):
         for i in range(amount):
             card = random.choice(self.deck)
             card.set_owner('dealer')
@@ -163,10 +165,6 @@ class Game():
 
     def update_player_hand_rects(self):
         num_cards = len(self.player_hand)
-        
-        if num_cards == 0:
-            raise ValueError("No cards to create rects for")  # No cards to create rects for
-
         total_width = num_cards * self.card_width
         start_x = (SCREEN_WIDTH - total_width) // 2
 
