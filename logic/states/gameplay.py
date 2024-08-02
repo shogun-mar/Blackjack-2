@@ -1,6 +1,25 @@
 import pygame
 from logic.states.gameState import GameState
-from settings import SCREEN_HEIGHT, MAX_THROWN_CARD_VELOCITY
+from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_THROWN_CARD_VELOCITY, DEALED_CARD_POSSIBLE_Y_OFFSET
+
+gameplay_background = None
+thrown_card_min_height = thrown_card_max_height = None
+stand_button_text = stand_button_rect = None
+hit_button_text = hit_button_rect = None
+
+def init_gameplay_state(game):
+    global gameplay_background, \
+           thrown_card_min_height, thrown_card_max_height, \
+           stand_button_text, stand_button_rect, \
+           hit_button_text, hit_button_rect
+
+    gameplay_background = game.generic_background.copy()
+    thrown_card_min_height = (SCREEN_HEIGHT // 2) - DEALED_CARD_POSSIBLE_Y_OFFSET
+    thrown_card_max_height = (SCREEN_HEIGHT // 2) + DEALED_CARD_POSSIBLE_Y_OFFSET
+    stand_button_text = game.gameplay_buttons_font.render("Stand", True, 'black')
+    stand_button_rect = stand_button_text.get_rect(center = (SCREEN_WIDTH * 0.1, SCREEN_HEIGHT // 2))
+    hit_button_text = game.gameplay_buttons_font.render("Hit", True, 'black')
+    hit_button_rect = hit_button_text.get_rect(center = (SCREEN_WIDTH * 0.9, SCREEN_HEIGHT // 2))
 
 def handle_gameplay_events(game, event):
     if event.type == pygame.KEYDOWN:
@@ -28,8 +47,8 @@ def handle_gameplay_events(game, event):
 
 def update_gameplay_logic(game):
     # Animate thrown cards
-    min_height = game.thrown_card_min_height
-    max_height = game.thrown_card_max_height
+    min_height = thrown_card_min_height
+    max_height = thrown_card_max_height
     for card in game.thrown_cards:
         velocity = calculate_velocity(card.rect.centery)
         if not min_height <= card.rect.centery <= max_height:
@@ -37,11 +56,9 @@ def update_gameplay_logic(game):
         elif card.owner == 'dealer':
             game.dealer_cards.append(card)
             game.thrown_cards.remove(card)
-
-
     
 def render_gameplay(game):
-    game.fake_screen.blit(game.gameplay_background, (0, 0))
+    game.fake_screen.blit(gameplay_background, (0, 0))
 
     #Draw thrown cards
     [card.draw(game.fake_screen) for card in game.thrown_cards]
@@ -49,6 +66,9 @@ def render_gameplay(game):
     [card.draw(game.fake_screen) for card in game.player_hand]
     #Draw dealer cards
     [card.draw(game.fake_screen) for card in game.dealer_cards]
+    #Draw buttons
+    game.fake_screen.blit(stand_button_text, stand_button_rect)
+    game.fake_screen.blit(hit_button_text, hit_button_rect)
 
 def raise_card_in_hand(game, pos):
     raised_card_max_height = game.cards_in_hand_y_value - (game.card_height * 0.3)

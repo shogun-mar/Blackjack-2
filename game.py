@@ -2,12 +2,12 @@ import pygame, random, os
 from logic.states.gameState import GameState
 from logic.card import Card
 from pygame.locals import QUIT, KEYDOWN, MOUSEBUTTONDOWN, VIDEORESIZE, MOUSEMOTION
-from logic.states.gameplay import handle_gameplay_events, update_gameplay_logic, render_gameplay
+from logic.states.gameplay import handle_gameplay_events, update_gameplay_logic, render_gameplay, init_gameplay_state
 from logic.states.powerupMenu import handle_powerup_menu_events, update_powerup_menu_logic, render_powerup_menu
-from logic.states.startMenu import handle_start_menu_events, update_start_menu_logic, render_start_menu
+from logic.states.startMenu import handle_start_menu_events, update_start_menu_logic, render_start_menu, init_start_menu
 from logic.states.pauseMenu import handle_pause_menu_events, update_pause_menu_logic, render_pause_menu
 from logic.states.bettingMenu import handle_betting_menu_events, update_betting_menu_logic, render_betting_menu, init_betting_menu
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, MENU_BACKGROUNDS_ALPHA_VALUE, DECK_NUM, DEALED_CARD_POSSIBLE_ROTATION, DEALED_CARD_POSSIBLE_X_OFFSET_RANGE, DEALED_CARD_POSSIBLE_Y_OFFSET
+from settings import SCREEN_HEIGHT, SCREEN_WIDTH, MAX_FPS, FLAGS, DECK_NUM, DEALED_CARD_POSSIBLE_ROTATION, DEALED_CARD_POSSIBLE_X_OFFSET_RANGE
 
 class Game():
     def __init__(self):
@@ -29,29 +29,26 @@ class Game():
         card_objects = self.cards_objects_list("graphics/cards/normal_cards/option2")
         #card_objects = self.cards_objects_list(f"graphics/cards/normal_cards/option{random.randint(1,2)}")
         self.deck = card_objects * DECK_NUM
+        self.generic_background = pygame.image.load("graphics/background.jpg").convert_alpha()
 
         # Start menu
-            # Background
-        
-
-            #Play message
+        init_start_menu(self)
+        #Play message
         rand_rotation_value = random.randrange(-20, 20)
-        self.start_menu_deck = pygame.image.load("graphics/cards/red_deck_right.png").convert_alpha()
-        start_menu_rect_topleft = (random.randrange(10, 100), random.randrange(10, 100)) 
-        self.start_menu_deck_rect = self.start_menu_deck.get_rect(topleft = start_menu_rect_topleft)
+        #self.start_menu_deck = pygame.image.load("graphics/cards/red_deck_right.png").convert_alpha()
+        #start_menu_rect_topleft = (random.randrange(10, 100), random.randrange(10, 100)) 
+        #self.start_menu_deck_rect = self.start_menu_deck.get_rect(topleft = start_menu_rect_topleft)
 
         #Gameplay
-        self.gameplay_background = pygame.image.load("graphics/background.jpg").convert_alpha()
+        self.gameplay_buttons_font = pygame.font.Font("graphics/m5x7.ttf", 68)
         self.card_width, self.card_height = self.deck[0].front_sprite.get_size() #Get the size of the card sprite
         self.cards_in_hand_y_value = SCREEN_HEIGHT - int(self.card_height * 0.6)
-        self.thrown_card_min_height = (SCREEN_HEIGHT // 2) - DEALED_CARD_POSSIBLE_Y_OFFSET
-        self.thrown_card_max_height = (SCREEN_HEIGHT // 2) + DEALED_CARD_POSSIBLE_Y_OFFSET
+        init_gameplay_state(self)
 
         #Betting menu
         self.betting_message_font = pygame.font.Font("graphics/m5x7.ttf", 48)
         self.betting_options_font = pygame.font.Font("graphics/m5x7.ttf", 68)
         init_betting_menu(self)
-
 
     def main(self):
         while True:
